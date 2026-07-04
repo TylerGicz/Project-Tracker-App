@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+    body {
+      margin: 0;
+    }
+    .msg_overlay {
+      display: flex;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.3);
+      width: 100vw;
+      height: 100vh;
+      cursor: pointer;
+    } 
+    .msg_box {
+      display: flex;
+      flex-direction: column;
+      align-self: center;
+      background-color: aqua;
+      width: 400px;
+      height: 180px;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: default;
+    }
+    .msg_header {
+      text-align: center;
+      font-weight: 600;
+      font-size: 16px;
+      border-bottom: 2px solid rgb(0, 0, 0);
+      flex: 0.1;
+      padding: 5px;
+    }
+    .msg_body {
+      text-align: center;
+      flex: 1;
+      padding: 5px;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+    .msg_btn_container {
+      text-align: center;
+      flex: 0.3;
+    }
+    .msg_btn {
+      border: 3px solid rgb(0, 0, 0);
+      border-radius: 5px;
+      padding: 3px;
+    }
+    .msg_btn:hover {
+      cursor: pointer;
+      background-color: rgb(0, 0, 0, 0.1);
+    }
+    </style>
+  </head>
+  <body>
+  </body>
+  <script>
+    var MessageStack = [];
+    
+    function AcceptMessage(e){
+      if(!MessageStack.length) return console.log("No message found to clear");
+      var target_class = e.target.classList.value;
+      if(target_class === 'msg_overlay' || target_class === 'msg_btn') {
+        var top_msg = MessageStack[MessageStack.length-1];
+        top_msg.remove();
+        MessageStack.pop();
+      }
+      if(!MessageStack.length) document.getElementsByClassName('msg_overlay')[0].remove();
+      else MessageStack[MessageStack.length-1].style.display = 'flex';
+    } 
+
+    function CreateMessage(msg_title, msg, txt_btn){
+      if(!msg_title) msg_title = '';
+      if(!txt_btn) txt_btn = 'OK';
+      if(!msg) return;
+      if(!MessageStack.length){
+        var msg_overlay_html = '<div class="msg_overlay"></div>';
+        var msg_overlay = render(msg_overlay_html);
+        document.body.appendChild(msg_overlay);
+        msg_overlay.addEventListener('click', AcceptMessage);
+      }
+      else MessageStack[MessageStack.length-1].style.display = 'none'; //hide the prev message
+
+      var message_html = '<div class="msg_box"><div class="msg_header">'+msg_title+'</div><div class="msg_body">'+msg+'</div><div class="msg_btn_container"><div class="msg_btn">'+txt_btn+'</div></div></div>';
+      var msg_el = render(message_html);
+      document.getElementsByClassName('msg_overlay')[0].appendChild(msg_el);
+      MessageStack.push(msg_el)
+    }
+
+    function render(HTMLstring){
+      var template = document.createElement('template');
+      template.innerHTML = HTMLstring;
+      return template.content.firstElementChild;
+    }
+
+    function onResize(){
+
+    }
+  </script>
+</html>
