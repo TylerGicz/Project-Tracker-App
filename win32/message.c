@@ -34,14 +34,6 @@ void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_tx
   msg = msg ? msg : "Undefined";
   btn_txt = btn_txt ? btn_txt : "OK";
 
-  RECT rcParent;
-  GetClientRect(hwndParent, &rcParent);
-  int x = (rcParent.right - rcParent.left - 500) / 2;
-  int y = (rcParent.bottom - rcParent.top - 200) / 2;
-
-  int box_width = 500;
-  int box_height = 200;
-
   // Create an overlay only if the message stk is empty
   if(isEmpty(instance.msg_stk)) {
     instance.msg_overlay_hwnd = CreateWindowExA(
@@ -51,8 +43,8 @@ void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_tx
       WS_CHILD | WS_VISIBLE,
       0,
       0,
-      rcParent.right,
-      rcParent.bottom,
+      0,
+      0,
       hwndParent,
       (HMENU) MENU_MSG_OVERLAY,
       hInstance,
@@ -65,10 +57,10 @@ void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_tx
     WC_MSG_BOX,
     "Message Box",
     WS_CHILD | WS_VISIBLE | WS_BORDER,
-    x,
-    y,
-    500,
-    200,
+    0,
+    0,
+    MSG_WIDTH,
+    MSG_HEIGHT,
     instance.msg_overlay_hwnd,
     (HMENU) MENU_MSG_BOX,
     hInstance,
@@ -77,6 +69,7 @@ void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_tx
   push((void *)hwndMsgbox, instance.msg_stk);
   HWND hwndEdit = CreateWindowExA( 0, "EDIT", msg, WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | ES_AUTOVSCROLL | ES_CENTER, 0, 0, 500, 150, hwndMsgbox, NULL, hInstance, NULL);
   CreateWindowExA(0, "BUTTON", btn_txt, WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 200, 150, 100, 50, hwndMsgbox, (HMENU) OK_PRESS, hInstance, NULL);
+  ResizeMsgOverlay(hwndParent);
 }
 
 void ClearMessage(){
@@ -85,5 +78,30 @@ void ClearMessage(){
     return;
   }
   DestroyWindow((HWND)pop(instance.msg_stk));
-  if(isEmpty(instance.msg_stk)) DestroyWindow(instance.msg_overlay_hwnd);
+  if(isEmpty(instance.msg_stk)) {
+    DestroyWindow(instance.msg_overlay_hwnd);
+    instance.msg_overlay_hwnd = NULL;
+  }
+}
+
+void CenterMsgBox(HWND hwndOverlay){
+  RECT rcParent;
+  GetClientRect(hwndOverlay, &rcParent);
+  int x = (rcParent.right - MSG_WIDTH) / 2;
+  int y = (rcParent.bottom - MSG_HEIGHT) / 2;
+  HWND hwndChild = GetWindow(hwndOverlay, GW_CHILD);
+  while(hwndChild) {
+    HWND next = GetWindow(hwndChild, GW_HWNDNEXT);
+    SetWindowPos(hwndChild, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOREDRAW);
+    hwndChild = next;
+  }
+}
+
+void ResizeMsgOverlay(HWND hwndMain){
+  HWND hwndOverlay = instance.msg_overlay_hwnd;
+  RECT rcParent;
+  GetClientRect(hwndMain, &rcParent);
+  SetWindowPos(hwndOverlay, NULL, 0, 0, rcParent.right, rcParent.bottom, SWP_NOMOVE | SWP_NOZORDER | SWP_NOREDRAW);
+  CenterMsgBox(hwndOverlay);
+  RedrawWindow(hwndOverlay, NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_ERASE );
 }

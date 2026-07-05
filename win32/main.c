@@ -16,6 +16,7 @@ app_instance instance;
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow){
   // TODO: create an init funct...
   instance.msg_stk = initStack();
+  instance.msg_overlay_hwnd = NULL;
 
   WNDCLASSA wc_message_box = { 0 };
   wc_message_box.hInstance = hInstance;
@@ -78,6 +79,10 @@ LRESULT CALLBACK WindowsProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
       return 0;
     }
     case WM_COMMAND: {
+      return 0;
+    }
+    case WM_SIZE: {
+      if(instance.msg_overlay_hwnd) ResizeMsgOverlay(hwnd);
       return 0;
     }
     default: {

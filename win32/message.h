@@ -6,10 +6,12 @@
 #define MENU_MSG_BOX 1002
 #define OK_PRESS 1050
 
-#define MSG_STK_SIZE 10
+#define MSG_WIDTH 500
+#define MSG_HEIGHT 200
 
 LRESULT CALLBACK MessageOverlayProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK MessageBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_txt);
 void ClearMessage(void);
+void ResizeMsgOverlay(HWND hwndParent);
