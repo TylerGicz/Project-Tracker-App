@@ -30,7 +30,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
   wc_message_overlay.hInstance = hInstance;
   wc_message_overlay.lpszClassName = WC_MSG_OVERLAY;
   wc_message_overlay.lpfnWndProc = MessageOverlayProc;
-  wc_message_overlay.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+  //wc_message_overlay.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
   wc_message_overlay.hCursor = LoadCursorA(NULL, IDC_HAND);
   RegisterClassA(&wc_message_overlay);
   // TODO: create an init funct...
@@ -61,8 +61,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
   data.G_hInstance = hInstance;
   data.G_hwnd = hwndIndex;
   ShowWindow(hwndIndex, nCmdShow);
-  CreateMessage(data.G_hwnd, data.G_hInstance, "This is the text within the first box", "Button Text");
-  CreateMessage(data.G_hwnd, data.G_hInstance, "This is the text within the second box", "Button Text");
+  CreateMessage(data.G_hwnd, data.G_hInstance, "Header1", "This is the text within the first box", "Button Text");
+  CreateMessage(data.G_hwnd, data.G_hInstance, "Header2", "This is the text within the second box", "Button Text");
   UpdateWindow(hwndIndex);
 
   MSG msg = { 0 };
@@ -75,21 +75,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
 LRESULT CALLBACK WindowsProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
   switch(msg) {
-    case WM_CREATE: {
-      return 0;
-    }
-    case WM_COMMAND: {
-      return 0;
-    }
     case WM_SIZE: {
       if(instance.msg_overlay_hwnd) ResizeMsgOverlay(hwnd);
       return 0;
     }
-    default: {
-      return DefWindowProcA(hwnd, msg, wParam, lParam);
+    case WM_DESTROY: {
+      PostQuitMessage(0);
+      return 0;
     }
+    default: return DefWindowProcA(hwnd, msg, wParam, lParam);
   }
-  return 0;
 }
 
 

@@ -6,31 +6,26 @@
 #include "instance.h"
 
 LRESULT CALLBACK MessageOverlayProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
-  return DefWindowProcA(hwnd, msg, wParam, lParam);
+  switch(msg){
+    case WM_LBUTTONDOWN: {
+      ClearMessage();
+      return 0;
+    }
+    default: return DefWindowProcA(hwnd, msg, wParam, lParam);
+  }
 }
 
 LRESULT CALLBACK MessageBoxProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
   switch(msg) {
     case WM_COMMAND: {
-      if (LOWORD(wParam) == OK_PRESS) {
-        ClearMessage();
-        return 0;
-      }
-      break;
+      if (LOWORD(wParam) == OK_PRESS) ClearMessage();
+      return 0;
     }
-    default: {
-      return DefWindowProcA(hwnd, msg, wParam, lParam);
-    }
+    default: return DefWindowProcA(hwnd, msg, wParam, lParam);
   }
-  return 0;
 }
 
-/** CreateMessage generates a windows which presents the user with a message with a okay button to close
- *  Features:
- *  OK button with custom text (default 'OK')
- *  Custom placement (defualt centered about the main window)
- */
-void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_txt) {
+void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char* header, char *msg, char *btn_txt) {
   msg = msg ? msg : "Undefined";
   btn_txt = btn_txt ? btn_txt : "OK";
 
@@ -59,16 +54,56 @@ void CreateMessage(HWND hwndParent, HINSTANCE hInstance, char *msg, char *btn_tx
     WS_CHILD | WS_VISIBLE | WS_BORDER,
     0,
     0,
-    MSG_WIDTH,
-    MSG_HEIGHT,
+    MSG_W,
+    MSG_H,
     instance.msg_overlay_hwnd,
     (HMENU) MENU_MSG_BOX,
     hInstance,
     NULL
   );
   push((void *)hwndMsgbox, instance.msg_stk);
-  HWND hwndEdit = CreateWindowExA( 0, "EDIT", msg, WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | ES_AUTOVSCROLL | ES_CENTER, 0, 0, 500, 150, hwndMsgbox, NULL, hInstance, NULL);
-  CreateWindowExA(0, "BUTTON", btn_txt, WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 200, 150, 100, 50, hwndMsgbox, (HMENU) OK_PRESS, hInstance, NULL);
+  CreateWindowExA( // Create Header Window
+    0,
+    "STATIC",
+    header,
+    WS_CHILD | WS_VISIBLE | SS_CENTER,
+    0,
+    0,
+    MSG_W,
+    MSG_HEADER_H,
+    hwndMsgbox,
+    NULL,
+    hInstance,
+    NULL
+  );
+  CreateWindowExA( // Create Body Window
+    0,
+    "STATIC",
+    msg,
+    WS_CHILD | WS_VISIBLE | SS_CENTER,
+    0,
+    MSG_HEADER_H,
+    MSG_W,
+    MSG_BODY_H,
+    hwndMsgbox,
+    NULL,
+    hInstance,
+    NULL
+  );
+  CreateWindowExA( // Create Button Window
+    0,
+    "BUTTON",
+    btn_txt,
+    WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+    (MSG_W - MSG_BTN_W) / 2,
+    MSG_HEADER_H + MSG_BODY_H,
+    MSG_BTN_W,
+    MSG_BTN_H,
+    hwndMsgbox,
+    (HMENU) OK_PRESS,
+    hInstance,
+    NULL
+  );
   ResizeMsgOverlay(hwndParent);
 }
 
@@ -87,8 +122,8 @@ void ClearMessage(){
 void CenterMsgBox(HWND hwndOverlay){
   RECT rcParent;
   GetClientRect(hwndOverlay, &rcParent);
-  int x = (rcParent.right - MSG_WIDTH) / 2;
-  int y = (rcParent.bottom - MSG_HEIGHT) / 2;
+  int x = (rcParent.right - MSG_W) / 2;
+  int y = (rcParent.bottom - MSG_H) / 2;
   HWND hwndChild = GetWindow(hwndOverlay, GW_CHILD);
   while(hwndChild) {
     HWND next = GetWindow(hwndChild, GW_HWNDNEXT);
